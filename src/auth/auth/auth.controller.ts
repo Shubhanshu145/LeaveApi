@@ -8,6 +8,7 @@ import { RedisService } from 'src/redis/redis.service';
 import { uploadUrlDto } from './DTO/upload.url.dto';
 import { S3Service } from 'src/s3/s3.service';
 import { ObjectId } from 'mongoose';
+import { verifyOtpDto } from './DTO/verify.otp.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -38,15 +39,16 @@ export class AuthController {
     return { message: 'OTP sent' };
   }
   @Post('verify-otp')
-  async verifyOtp(@Body() body: { email: string; otp: string,newpassword:string}) {
-    const npassword = body.newpassword;
+  async verifyOtp(@Body() body: verifyOtpDto) {
+    const {email,otp,newpassword}=body;
     
-    const isValid = await this.otpService.verifyOtp(body.email, body.otp);
+    
+    const isValid = await this.otpService.verifyOtp(email,otp);
     console.log(isValid)
     if(!isValid){
         return "Not Verified"
     }
-    this.authService.changepassword(body.email,npassword);
+    this.authService.changepassword(email,newpassword);
    
   }
   @Post('reset-passwrod')

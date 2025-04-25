@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { LeaveService } from './leave.service';
 import { UserGuard } from './guards/user.guard';
+import { leaveDto } from './DTO/leave.dto';
 
 
 @Controller('leave')
@@ -9,7 +10,8 @@ export class LeaveController {
 
     @Post()
     @UseGuards(UserGuard)
-    async applyLeave(@Body() body: { leaveType: string; from: string; to: string }, @Req() req,) {
+    async applyLeave(@Body() body: leaveDto, @Req() req,) {
+      const{leaveType,from,to}=body
     const userId = req.user.id;
     return this.leaveService.applyLeave(
       userId,

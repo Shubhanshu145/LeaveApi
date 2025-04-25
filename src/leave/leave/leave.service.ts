@@ -16,7 +16,12 @@ export class LeaveService {
   async applyLeave(userId: string, leaveType: string, from: Date, to: Date) {
     const user = await this.userModel.findById(userId);
     if (!user) throw new BadRequestException('User not found');
-  
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1); 
+    
+    
     const now = new Date();
     const start = new Date(from);
     const end = new Date(to);
