@@ -96,3 +96,90 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+
+
+# 📘 User Onboarding & Leave Management API
+
+This API provides endpoints for user account management, authentication, and employee leave operations. It is designed to support user signup/login, OTP verification, profile management, and leave application and tracking.
+
+---
+
+## 🚀 Base URL
+
+
+---
+
+## 🔐 Authentication
+
+Most endpoints (except signup, login, forget-password, send-otp, and verify-otp) require a valid JWT token passed in the `Authorization` header:
+
+
+---
+
+## 👤 User Onboarding
+
+### ➕ Create Account
+**POST** `/signup`  
+Create a new user account.  
+
+### 🔓 Login
+**POST** `/login`  
+Authenticate user and receive a JWT token.
+
+### 🔁 Forgot Password
+**POST** `/forget-password`  
+Initiate password reset process (sends OTP to user).
+
+### 🔄 Resend OTP
+**POST** `/send-otp`  
+Resend the OTP for account or password verification.
+
+### ✅ Verify OTP
+**POST** `/verify-otp`  
+Verify the OTP sent to the user.  
+**Note:** OTP expires after **5 minutes**.
+
+### 👤 Get User Profile
+**GET** `/profile`  
+Retrieve the logged-in user's profile details.
+
+### ✏️ Update User Profile
+**PATCH** `/profile`  
+Update user name and/or profile picture.
+
+---
+
+## 🌴 Leave Management
+
+### 📝 Apply for Leave
+**POST** `/leave`  
+Submit a leave application.
+
+### 📄 Get All Leaves
+**GET** `/leave`  
+Retrieve all leave requests. Supports filtering by leave type and pagination.
+
+**Query Parameters:**
+- `type`: (optional) Filter by leave type
+- `page`: (optional) Page number for pagination
+- `limit`: (optional) Number of results per page
+
+### 📌 Get Leave by ID
+**GET** `/leave/:leaveId`  
+Fetch the details of a specific leave request.
+
+---
+
+## 📌 Notes
+
+- All timestamps are in UTC.
+- Ensure to handle OTP expiration on the client side as well.
+- Recommended to use HTTPS for all API interactions.
+
+
+
+
+
+
+
