@@ -1,12 +1,12 @@
-import { IsString, IsEmail, IsNumber, } from "class-validator";
+import { IsString } from 'class-validator';
 
-export class uploadUrlDto{
-    @IsString()
-    filename:string
+export class uploadUrlDto {
+  @IsString()
+  filename: string;
 
-    @IsString()
-    contentType:string
+  @IsString()
+  contentType: string;
 
-    @IsString()
-    userID:string
+  @IsString()
+  userID: string;
 }
