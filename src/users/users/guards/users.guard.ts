@@ -8,7 +8,6 @@
 // import { ConfigService } from '@nestjs/config';
 // import { User } from 'src/auth/auth/Schema/user.schema';
 
-
 // @Injectable()
 // export class UsersGuard implements CanActivate {
 //   constructor(private jwtService: JwtService, @InjectModel(User.name) private userModel: Model<User>,private configService:ConfigService) {}
@@ -24,13 +23,13 @@
 //       const payload = await this.jwtService.verify(token, {
 //         secret: this.configService.get<string>('jwt.secret'),
 //       });
-//       const userId = payload.userID; 
+//       const userId = payload.userID;
 //       const user = await this.userModel.findById(userId).select('-password').exec();
 //       if (!user) {
 //         throw new UnauthorizedException('User not found');
 //       }
 
-//       request['user'] = user; 
+//       request['user'] = user;
 //       return true;
 //     } catch (e) {
 //       Logger.error(e.message);

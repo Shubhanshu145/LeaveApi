@@ -1,14 +1,12 @@
+import { IsString, IsEmail, IsNumber } from 'class-validator';
 
-import { IsString, IsEmail, IsNumber, } from "class-validator";
+export class leaveDto {
+  @IsEmail()
+  leaveType: string;
 
-export class leaveDto{
-    @IsEmail()
-    leaveType: string;
-   
-    @IsString()
-    from: string;
+  @IsString()
+  from: string;
 
-    @IsString()
-    to: string 
-    
+  @IsString()
+  to: string;
 }

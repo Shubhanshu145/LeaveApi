@@ -8,7 +8,8 @@ import { OtpModule } from 'src/otp/otp.module';
 import { RedisModule } from 'src/redis/redis.module';
 import { S3Service } from 'src/s3/s3.service';
 import { S3Module } from 'src/s3/s3.module';
-import { forgetPassword, forgetPasswordSchema } from './Schema/forget.password.schema';
+import { ForgetPassword, ForgetPasswordSchema } from './Schema/forget.password.schema';
+import { successService } from 'src/success/success.service';
 
 @Module({
   imports: [
@@ -18,14 +19,15 @@ import { forgetPassword, forgetPasswordSchema } from './Schema/forget.password.s
         schema: UserSchema,
       },
       {
-        name: forgetPassword.name,
-        schema: forgetPasswordSchema
+        name: ForgetPassword.name,
+        schema: ForgetPasswordSchema
       }
     ]),
     OtpModule,
     RedisModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, errorService, S3Service],
+  providers: [AuthService, errorService, S3Service,successService],
+  exports:[AuthService]
 })
 export class AuthModule {}

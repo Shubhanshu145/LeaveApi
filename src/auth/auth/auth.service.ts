@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { SignupDto } from './DTO/signup.dto';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -7,16 +7,22 @@ import { errorService } from 'src/error/error.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './DTO/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { forgetPassword } from './Schema/forget.password.schema';
+import { ForgetPassword } from './Schema/forget.password.schema';
+import { successService } from 'src/success/success.service';
+import { forgetPasswordDto } from './DTO/forget.password.dto';
+import { OtpService } from 'src/otp/otp.service';
+import { Forgot } from './interfaces/forgot.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private UserModel: Model<User>,
-    @InjectModel(forgetPassword.name) private passwordModel: Model<forgetPassword>,
-    private errorService: errorService,
+    @InjectModel(ForgetPassword.name) private passwordModel: Model<ForgetPassword>,
+    private errorService: errorService,private successService:successService,
+
 
     private jwtService: JwtService,
+    private otpService:OtpService
   ) {}
   async signup(signupData: SignupDto) {
     const { email, name, phone, password } = signupData;
@@ -24,13 +30,13 @@ export class AuthService {
       email: signupData.email,
     });
     if (emailInUse) {
-      this.errorService.throwError('EXIST')
+      return {Message:this.errorService.get("EXIST")}
     }
     const phoneInUse = await this.UserModel.findOne({
       phone: signupData.phone,
     });
     if (phoneInUse) {
-      throw new BadRequestException('Phone number already exists');
+      return {Message:this.errorService.get("PHONE_InUse")}
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await this.UserModel.create({
@@ -40,44 +46,25 @@ export class AuthService {
       password: hashedPassword,
     });
     if (user) {
-      return { Message: `${name} registered successfully` };
+      return { Message: this.successService.get("SIGNUP SUCCESSFUL") };
     }
   }
-
+ 
   async login(credentials: LoginDto) {
     const { email, password } = credentials;
     const user = await this.UserModel.findOne({ email });
     if (!user) {
-      throw new BadRequestException('Invalid credentials');
+      return {Message:this.errorService.get("INVALID_CREDENTIALS")}
     }
 
     const matchedpassword = await bcrypt.compare(password, user.password);
     if (!matchedpassword) {
-      throw new BadRequestException('Invalid credentials');
+      return {Message:this.errorService.get("INVALID_CREDENTIALS")}
     }
     const userID = user._id;
     const accessToken = this.jwtService.sign({ userID });
     return {
-      Message: `token generated successfully ${accessToken}`,
-    };
-  }
-
-  async forgetPassword(email: string) {
-    const user = await this.UserModel.findOne({ email });
-    if (!user) {
-      throw new BadRequestException('Email does not exist');
-    }
-    const { canAttempt, attemptsRemaining } = await this.count(email);
-    if (canAttempt) {
-      const useremail = user.email;
-      const accessToken = this.jwtService.sign({ useremail });
-      return {
-        accessToken,
-        message: `Password reset email sent.  You have ${attemptsRemaining - 1} attempts remaining today.`,
-      };
-    }
-    return {
-      message: 'You have exhausted your daily limit of 5 password reset requests.',
+      Message: this.successService.get("LOGIN_SUCCESSFULL"),accessToken
     };
   }
 
@@ -104,50 +91,122 @@ export class AuthService {
   }
 
 
-  async count(email: string): Promise<{ canAttempt: boolean; attemptsRemaining: number }> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const user = await this.passwordModel.findOne({
-      email,
-      resetRequestDate: { $gte: today }, 
-    });
-
-    if (!user) {
-      await this.passwordModel.create({
-        email: email,
-        count: 1,
-        resetRequestDate: today,
-      });
-      return { canAttempt: true, attemptsRemaining: 5 }; 
-    }
-    const attempts = user.count;
-    if (attempts < 5) {
-      return { canAttempt: true, attemptsRemaining: 5 - attempts };
-    }
-    return { canAttempt: false, attemptsRemaining: 0 };
+  async updateLeaves(userId:string,n:number,lenght:number){
+    const user = await this.UserModel.findById(userId);
+    if(user){
+    user.leaves = (n - lenght).toString();
+    await user.save();}
   }
 
-  async attempt(email: string): Promise<void> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  async userData(userId:string){
+    const user= await this.UserModel.findById(userId);
+    // console.log(user)
+    return user
+  
+  }
+  async forgetPassword(payload: forgetPasswordDto) {
+    const { userId, email } = payload;
+    
+    // Check if user exists
+    const user = await this.UserModel.findById(userId);
+    if (!user) {
+      return { Message: this.errorService.get("EXIST") }; 
+    }
+  
+    const attemptCheck = await this.count(userId);
 
-    const user = await this.passwordModel.findOne({
-      email,
-      resetRequestDate: { $gte: today }, 
+    if (!attemptCheck.canAttempt) {
+      return {
+        Message: this.errorService.get("LIMIT_EXHAUSTED"),
+        detail: attemptCheck.message
+      };
+    }
+  
+    const accessToken = this.jwtService.sign({ email: user.email });
+  
+    const hi = await this.createEntry(userId);
+
+    await this.otpService.sendOtp(email);
+  
+    return {
+      accessToken,
+      Message: this.successService.get("OTP_SEND"),
+      attemptsRemaining: attemptCheck.attemptsRemaining - 1
+    };
+  }
+  
+  async count(userId: string): Promise<{ 
+    canAttempt: boolean; 
+    attemptsRemaining: number;
+    message?: string 
+  }> {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  
+    const attemptsCount = await this.passwordModel.countDocuments({
+      userId,
+      createdAt: { $gte: twentyFourHoursAgo },
+      
     });
+    
+  
+    if (attemptsCount === 0) {
+      return { 
+        canAttempt: true, 
+        attemptsRemaining: 5 
+      };
+    }
+  
+    
+    if (attemptsCount >= 5) {
+      const oldestAttempt = await this.passwordModel.findOne(
+        { userId },
+        {createdAt: 1}
+      ).sort({createdAt: 1})
 
-    if (user) {
-      await this.passwordModel.updateOne(
-        { email: email, resetRequestDate: { $gte: today } }, 
-        { $inc: { count: 1 } }, 
+      const { createdAt } = (oldestAttempt as any).createdAt;
+
+      console.log(createdAt);
+      if (oldestAttempt) {
+        const hoursElapsed = (Date.now() - new Date(createdAt).getTime()) / (60 * 60 * 1000);
+        const hoursToWait = Math.ceil(24 - hoursElapsed);
+        
+        return { 
+          canAttempt: false, 
+          attemptsRemaining: 0,
+          message: `Maximum attempts reached. Try again after hours.`
+        };
+      }
+    }
+  
+    return { 
+      canAttempt: true, 
+      attemptsRemaining: 5 - attemptsCount 
+    };
+  }
+  
+  async createEntry(userId: string) {
+    try {
+      
+      await this.passwordModel.updateMany(
+        { userId, status: '1' },
+        { status: '3' } 
       );
-    } else {
-      await this.passwordModel.create({
-        email: email,
-        count: 1,
-        resetRequestDate: today,
+      
+      
+      const newEntry = await this.passwordModel.create({
+        userId: userId,
+        resetRequestDate: new Date(),
+        method: "forget-password",
+        status: "1"
       });
+     
+
+      return newEntry;
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new Error('Duplicate active reset request');
+      }
+      throw error;
     }
   }
 }

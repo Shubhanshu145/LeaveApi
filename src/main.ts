@@ -5,7 +5,7 @@ import { format, transports } from 'winston';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule,{
+  const app = await NestFactory.create(AppModule, {
     logger: WinstonModule.createLogger({
       transports: [
         new transports.File({
@@ -18,27 +18,27 @@ async function bootstrap() {
           format: format.combine(format.timestamp(), format.json()),
         }),
         new transports.Console({
-         format: format.combine(
-           format.cli(),
-           format.splat(),
-           format.timestamp(),
-           format.printf((info) => {
-             return `${info.timestamp} ${info.level}: ${info.message}`;
-           }),
+          format: format.combine(
+            format.cli(),
+            format.splat(),
+            format.timestamp(),
+            format.printf((info) => {
+              return `${info.timestamp} ${info.level}: ${info.message}`;
+            }),
           ),
-      }),
+        }),
       ],
     }),
   });
   const config = new DocumentBuilder()
-  .setTitle('Leave Management')
-  .setDescription('The Leave Management API docs')
-  .setVersion('1.0')
-  .addBearerAuth() 
-  .build();
+    .setTitle('Leave Management')
+    .setDescription('The Leave Management API docs')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
 
-const document = SwaggerModule.createDocument(app, config);
-SwaggerModule.setup('api', app, document); 
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

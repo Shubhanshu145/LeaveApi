@@ -6,33 +6,36 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
-import { RedisModule } from './redis/redis.module';
-import { OtpModule } from './otp/otp.module';
+
 import { LeaveModule } from './leave/leave/leave.module';
 import { RequestLoggerMiddleware } from './logger/logger.middleware';
 import { UsersModule } from './users/users/users.module';
 
-
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal:true,
-    envFilePath: '.env',
-    load: [configuration]
-  }),
-  JwtModule.registerAsync({
-    global: true,
-    useFactory: (configService: ConfigService) => ({
-      secret: configService.get<string>('jwt.secret'),
-      signOptions: {expiresIn: configService.get<string>('jwt.expiry')}
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      load: [configuration],
     }),
-    inject:[ConfigService]
-  }), MongooseModule.forRootAsync({
-      
-    useFactory: async (configService: ConfigService) => ({
-      uri: configService.get<string>('db.uri'),
+    JwtModule.registerAsync({
+      global: true,
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('jwt.secret'),
+        signOptions: { expiresIn: configService.get<string>('jwt.expiry') },
+      }),
+      inject: [ConfigService],
     }),
-    inject: [ConfigService],
-  }),AuthModule,LeaveModule,UsersModule],
+    MongooseModule.forRootAsync({
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('db.uri'),
+      }),
+      inject: [ConfigService],
+    }),
+    AuthModule,
+    LeaveModule,
+    UsersModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

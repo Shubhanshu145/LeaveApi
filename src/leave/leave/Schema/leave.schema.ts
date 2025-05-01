@@ -15,7 +15,7 @@ export class Leave {
   leaveDates: Date[];
 
   @Prop({ default: 'Pending' })
-  status: string; // Pending | Approved | Rejected
+  status: string;
 }
 
 export const LeaveSchema = SchemaFactory.createForClass(Leave);

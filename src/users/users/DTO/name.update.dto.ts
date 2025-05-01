@@ -1,9 +1,8 @@
-import { IsString, IsEmail, IsNumber, } from "class-validator";
+import { IsString, IsEmail } from 'class-validator';
 
-export class nameUpdateDto{
-    @IsEmail()
-    email:string
-    @IsString()
-    newname:string
-    
+export class nameUpdateDto {
+  @IsEmail()
+  email: string;
+  @IsString()
+  newname: string;
 }

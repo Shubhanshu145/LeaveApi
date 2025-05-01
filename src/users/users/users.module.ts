@@ -7,14 +7,19 @@ import { Leave, LeaveSchema } from 'src/leave/leave/Schema/leave.schema';
 import { S3Service } from 'src/s3/s3.service';
 
 @Module({
-  imports:[MongooseModule.forFeature([{
-        name :User.name,
-        schema: UserSchema 
-       },{
-      name :Leave.name,
-      schema:LeaveSchema}
-    ])],
+  imports: [
+    MongooseModule.forFeature([
+      {
+        name: User.name,
+        schema: UserSchema,
+      },
+      {
+        name: Leave.name,
+        schema: LeaveSchema,
+      },
+    ]),
+  ],
   controllers: [UsersController],
-  providers: [UsersService,S3Service]
+  providers: [UsersService, S3Service],
 })
 export class UsersModule {}
