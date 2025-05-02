@@ -53,7 +53,7 @@ async forget(@Body() payload: forgetPasswordDto) {
     return {
       success: false,
       message: result.Message,
-      detail: result.detail || 'Failed to process forget password request'
+     
     };
   
 }
