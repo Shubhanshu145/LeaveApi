@@ -171,23 +171,21 @@ export class AuthService {
         const hoursToWait = Math.ceil(24 - hoursElapsed);
         
         return { 
-          canAttempt: false, 
-          attemptsRemaining: 0,
-          message: `Maximum attempts reached. Try again after hours.`
+          canAttempt: false,
+          attemptsRemaining:0,
+          message: "Maximum attempts reached. Try again after hours."
         };
       }
     }
   
     return { 
-      canAttempt: true, 
+      canAttempt: true,
       attemptsRemaining: 5 - attemptsCount 
     };
   }
   
   async createEntry(userId: string) {
-    try {
-      
-      await this.passwordModel.updateMany(
+    try {      await this.passwordModel.updateMany(
         { userId, status: '1' },
         { status: '3' } 
       );

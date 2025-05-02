@@ -1,6 +1,7 @@
 {
 
-    "EXIST":"User already exist",
+    "EXIST":{"messgae":"User already exist",
+    "status":"409"},
     "NOT_FOUND": "User not found",
     "INVALID_CREDENTIALS": "WRONG USERNAME OR PASSWORD",
     "ALREADY_EXIST": "User already exist",

@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from 'fs';
 import * as path from 'path';
 
 @Injectable()
-export class errorService {  // Note: Class name should be PascalCase
+export class errorService { 
     private translations: Record<string, Record<string, string>> = {};
 
     constructor() {
@@ -29,17 +29,14 @@ export class errorService {  // Note: Class name should be PascalCase
     }
 
     get(key: string, lang: string = 'en'): string {
-        // First try the requested language
+       
         if (this.translations[lang] && this.translations[lang][key]) {
             return this.translations[lang][key];
         }
         
-        // Then try English fallback
         if (this.translations['en'] && this.translations['en'][key]) {
             return this.translations['en'][key];
         }
-        
-        // Finally return the key itself if no translation found
         return key;
     }
 }
